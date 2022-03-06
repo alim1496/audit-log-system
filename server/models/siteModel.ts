@@ -1,6 +1,6 @@
 import { Schema, model, Types } from "mongoose";
 
-interface Site {
+export interface Site {
     name: string;
     region: string;
     description: string;
@@ -32,7 +32,8 @@ const schema = new Schema<Site> ({
     },
     user: {
         type: Schema.Types.ObjectId,
-        ref: "user"
+        ref: "User",
+        required: true
     }
 }, { timestamps: true });
 

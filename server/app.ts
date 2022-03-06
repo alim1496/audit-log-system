@@ -1,6 +1,7 @@
 import express, { Application, Request, Response } from "express";
 import mongoose from "mongoose";
 import config from "./config";
+import SiteRouter from "./routes/siteRoute";
 import UserRouter from "./routes/userRoute";
 
 const app: Application = express();
@@ -16,5 +17,6 @@ mongoose.connect(mongodbURL).catch(error => console.log(`${error} connecting to 
 app.get("/", (req: Request, res: Response) => res.send("Hello all"));
 
 app.use("/api/v1/users", UserRouter);
+app.use("/api/v1/sites", SiteRouter);
 
 app.listen(port, () => console.log(`Server running on ${port}`));
