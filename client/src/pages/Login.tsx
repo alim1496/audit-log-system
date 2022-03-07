@@ -1,34 +1,43 @@
-import React from "react";
-import { Avatar, Button, Grid, Paper, TextField } from "@mui/material";
+import React, { useState, MouseEvent, FC } from "react";
+import { Avatar, Button, Container, Grid, Paper, TextField } from "@mui/material";
+import axios from "axios";
 import LockOpenIcon from '@mui/icons-material/LockOpen';
+import styles from "../styles/login";
 
-const Login = () => {
-    const paperStyle = {
-        padding: 20,
-        width: 400,
-        margin: "50px auto"
-    };
+const Login:FC = () => {
+    const [userName, setUserName] = useState("");
+    const [password, setPassword] = useState("");
 
-    const spaced = {
-        margin: "10px 0"
-    };
+    const submitData = (e: MouseEvent<HTMLElement>) => {
+        e.preventDefault();
+        if(userName === "" || password === "") return;
 
-    const spaceBottom = {
-        marginBottom: "5px"
+        const data = { userName, password };
+        axios
+            .post("http://localhost:5000/api/v1/users/login", data)
+            .then((res) => {
+                console.log(res);
+                window.location.href = "/";
+            })
+            .catch((err) => {
+                console.log(err);
+            });
     };
 
     return (
-        <Grid>
-            <Paper elevation={10} style={paperStyle}>
-                <Grid>
-                    <Avatar><LockOpenIcon/></Avatar>
-                    <h3 style={spaced}>Account Login</h3>
-                </Grid>
-                <TextField style={spaceBottom} label="Username" placeholder="Enter username" required fullWidth />
-                <TextField style={spaceBottom} label="Password" placeholder="Enter password" type="password" fullWidth required />
-                <Button style={spaced} type="submit" color="primary" variant="contained" fullWidth>Login</Button>
+        <Container maxWidth="sm">
+            <Paper elevation={5} style={styles.paperStyle}>
+                <form>
+                    <Grid container direction="column" style={styles.centered}>
+                        <Avatar style={styles.avatarStyle}><LockOpenIcon/></Avatar>
+                        <h3 style={styles.spaced}>Account Login</h3>
+                    </Grid>
+                    <TextField style={styles.spaceBottom} label="Username" placeholder="Enter username" required fullWidth onChange={(e) => setUserName(e.target.value)} />
+                    <TextField style={styles.spaceBottom} label="Password" placeholder="Enter password" type="password" fullWidth required  onChange={(e) => setPassword(e.target.value)} />
+                    <Button style={{...styles.spaced, ...styles.expanded}} type="submit" color="primary" variant="contained" fullWidth onClick={submitData}>Login</Button>
+                </form>
             </Paper>
-        </Grid>
+        </Container>
     );
 };
 

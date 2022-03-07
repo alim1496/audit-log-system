@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from "express";
 import mongoose from "mongoose";
+import cors from "cors";
 import config from "./config";
 import SiteRouter from "./routes/siteRoute";
 import UserRouter from "./routes/userRoute";
@@ -8,6 +9,7 @@ const app: Application = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cors());
 
 const port = config.PORT;
 const mongodbURL = config.MONGODB_URL;
