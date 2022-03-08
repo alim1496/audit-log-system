@@ -30,8 +30,8 @@ SiteRouter.post("/", isAuth, (req: Request, res: Response) => {
 
     site
         .save()
-        .then(() => {
-            res.status(201).send({ message: "New Site Created Successfully."});
+        .then((data) => {
+            res.status(201).send({ message: "New Site Created Successfully.", data });
         })
         .catch(() => res.status(500).send({ message: "Could not create site." }));
 });
@@ -43,8 +43,8 @@ SiteRouter.patch("/:id", isAuth, (req: Request, res: Response) => {
 
     SiteModel
         .findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true })
-        .then(() => {
-            res.status(201).send({ message: "Site Updated Successfully."});
+        .then((data) => {
+            res.status(201).send({ message: "Site Updated Successfully.", data });
         })
         .catch(() => res.status(500).send({ message: "Could not create site." }));
 });

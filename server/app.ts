@@ -1,6 +1,7 @@
 import express, { Application, Request, Response } from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import config from "./config";
 import SiteRouter from "./routes/siteRoute";
 import UserRouter from "./routes/userRoute";
@@ -9,7 +10,11 @@ const app: Application = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({
+    origin: ["http://localhost:3000"],
+    credentials: true
+}));
 
 const port = config.PORT;
 const mongodbURL = config.MONGODB_URL;

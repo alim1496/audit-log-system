@@ -14,9 +14,9 @@ const Login:FC = () => {
 
         const data = { userName, password };
         axios
-            .post("http://localhost:5000/api/v1/users/login", data)
+            .post("http://localhost:5000/api/v1/users/login", data, { withCredentials: true })
             .then((res) => {
-                console.log(res);
+                localStorage.setItem("user_id", res.data.user_id);
                 window.location.href = "/";
             })
             .catch((err) => {

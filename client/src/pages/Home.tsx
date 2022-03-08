@@ -1,5 +1,5 @@
 import { Container, Grid, Paper, TextField, Button, AppBar, Toolbar, Box } from "@mui/material";
-import React, { FC, useState } from "react";
+import React, { FC, useState, MouseEvent, useContext } from "react";
 import { styled, alpha } from '@mui/material/styles';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -8,6 +8,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import Typography from '@mui/material/Typography';
 import InputBase from '@mui/material/InputBase';
 import styles from "../styles/home";
+import axios from "axios";
+import LogContext from "../utils/LogContext";
 
 const Home:FC = () => {
     const [name, setName] = useState("");
@@ -15,6 +17,7 @@ const Home:FC = () => {
     const [description, setDescription] = useState("");
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
+    const { updateOpen, updateMessage, updateSeverity } = useContext(LogContext);
 
     const Search = styled('div')(({ theme }) => ({
         position: 'relative',
@@ -57,10 +60,32 @@ const Home:FC = () => {
         },
       }));
 
-    const submitData = () => {};
+    const submitData = (e: MouseEvent<HTMLElement>) => {
+        e.preventDefault();
+        const data = { name, region, description, latitude, longitude, user: localStorage.getItem("user_id") };
+
+        axios
+            .post("http://localhost:5000/api/v1/sites/", data, { withCredentials: true })
+            .then((res) => {
+                updateSeverity(1);
+                updateOpen(true);
+                updateMessage(res.data.message);
+            })
+            .catch((err) => {
+                updateSeverity(0);
+                updateOpen(true);
+                updateMessage("Something went wrong. Could not create site.");
+            });
+    };
 
     const logout = () => {
-        window.location.href = "/login";
+        axios
+            .get("http://localhost:5000/api/v1/users/logout")
+            .then(() => {
+                localStorage.removeItem("user_id");
+                window.location.href = "/login";
+            })
+            .catch((err) => console.log(err));
     };
 
     return (

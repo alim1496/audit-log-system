@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { VerifyErrors } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import config from "./config";
 import { User } from "./models/userModel";
@@ -16,12 +16,11 @@ export const getToken = (user: User) => {
 }
 
 export const isAuth = (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (token) {
-        jwt.verify(token, config.JWT_SECRET, (err, decode) => {
+    if (req.cookies && req.cookies.token) {
+        const _token = JSON.parse(req.cookies.token);
+        jwt.verify(_token, config.JWT_SECRET, (err: VerifyErrors | null, decode: any | undefined) => {
             if (err) {
-                res.status(401).send({ message: "Invalid token" });
+                res.status(401).send({ message: err });
             } else {
                 next();
             }
