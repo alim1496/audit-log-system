@@ -1,8 +1,12 @@
 import { Container, Grid, Paper, TextField, Button, AppBar, Toolbar, Box } from "@mui/material";
 import React, { FC, useState } from "react";
+import { styled, alpha } from '@mui/material/styles';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import SearchIcon from '@mui/icons-material/Search';
+import Typography from '@mui/material/Typography';
+import InputBase from '@mui/material/InputBase';
 import styles from "../styles/home";
 
 const Home:FC = () => {
@@ -12,18 +16,79 @@ const Home:FC = () => {
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
 
+    const Search = styled('div')(({ theme }) => ({
+        position: 'relative',
+        borderRadius: theme.shape.borderRadius,
+        backgroundColor: alpha(theme.palette.common.white, 0.15),
+        '&:hover': {
+          backgroundColor: alpha(theme.palette.common.white, 0.25),
+        },
+        marginLeft: 0,
+        width: '100%',
+        [theme.breakpoints.up('sm')]: {
+          marginLeft: theme.spacing(1),
+          width: 'auto',
+        },
+      }));
+      
+      const SearchIconWrapper = styled('div')(({ theme }) => ({
+        padding: theme.spacing(0, 2),
+        height: '100%',
+        position: 'absolute',
+        pointerEvents: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }));
+
+      const StyledInputBase = styled(InputBase)(({ theme }) => ({
+        color: 'inherit',
+        '& .MuiInputBase-input': {
+          padding: theme.spacing(1, 1, 1, 0),
+          paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+          transition: theme.transitions.create('width'),
+          width: '100%',
+          [theme.breakpoints.up('sm')]: {
+            width: '12ch',
+            '&:focus': {
+              width: '20ch',
+            },
+          },
+        },
+      }));
+
     const submitData = () => {};
+
+    const logout = () => {
+        window.location.href = "/login";
+    };
 
     return (
         <>
-            <AppBar position="static">
-                <Container>
-                    <Toolbar>
-                        <h3>Audit Log</h3>
-                        <Button type="button" variant="text" color="secondary" startIcon={<ExitToAppIcon />}>Logout</Button>
+            <Box sx={{ flexGrow: 1 }}>
+                <AppBar position="static">
+                    <Toolbar style={{ margin: "auto", width: "50%", minWidth: 300 }}>
+                        <Typography
+                            variant="h6"
+                            noWrap
+                            component="div"
+                            sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
+                        >
+                            Audit Log
+                        </Typography>
+                        <Search>
+                            <SearchIconWrapper>
+                                <SearchIcon />
+                            </SearchIconWrapper>
+                            <StyledInputBase
+                                placeholder="Search…"
+                                inputProps={{ 'aria-label': 'search' }}
+                            />
+                        </Search>
+                        <Button type="button" startIcon={<ExitToAppIcon />} style={{ color: "#fff", marginLeft: "2rem" }} onClick={logout}>Logout</Button>
                     </Toolbar>
-                </Container>
-            </AppBar>
+                </AppBar>
+            </Box>
             <Container>
                 <Paper elevation={5} style={styles.formStyle}>
                     <form>
