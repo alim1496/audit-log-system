@@ -1,10 +1,14 @@
 import React, { FC, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, Outlet, Navigate } from "react-router-dom";
 import './App.css';
 import CustomSnackbar from './components/CustomSnackBar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import { LogContextProvider } from './utils/LogContext';
+
+const ProtectedRoute = () => (
+  localStorage.getItem("user_id") ? <Outlet /> : <Navigate to="/login" />
+);
 
 const App: FC = () => {
   const [open, setOpen] = useState(false);
@@ -33,7 +37,9 @@ const App: FC = () => {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<ProtectedRoute />}>
+            <Route path="/" element={<Home />} />
+          </Route>
         </Routes>
       </Router>
     </LogContextProvider>

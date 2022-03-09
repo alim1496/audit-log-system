@@ -33,7 +33,7 @@ UserRouter.post("/login", async (req: Request, res: Response) => {
             })
             .send({ message: "Successfully logged in", user_id: user._id });
     } else {
-        res.status(404).send({ message: "No user found" });
+        res.status(404).send({ message: "Credentials did not match" });
     }
 });
 

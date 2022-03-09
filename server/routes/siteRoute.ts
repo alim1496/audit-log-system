@@ -31,7 +31,7 @@ SiteRouter.post("/", isAuth, (req: Request, res: Response) => {
     site
         .save()
         .then((data) => {
-            res.status(201).send({ message: "New Site Created Successfully.", data });
+            res.status(201).send({ message: `Site created successfully with id ${data._id}`, data });
         })
         .catch(() => res.status(500).send({ message: "Could not create site." }));
 });

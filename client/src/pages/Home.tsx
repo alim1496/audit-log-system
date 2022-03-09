@@ -10,6 +10,7 @@ import InputBase from '@mui/material/InputBase';
 import styles from "../styles/home";
 import axios from "axios";
 import LogContext from "../utils/LogContext";
+import LoadingButton from "../components/LoadingButton";
 
 const Home:FC = () => {
     const [name, setName] = useState("");
@@ -18,6 +19,8 @@ const Home:FC = () => {
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
     const { updateOpen, updateMessage, updateSeverity } = useContext(LogContext);
+    const [loading, setLoading] = useState(false);
+    const [search, setSearch] = useState("");
 
     const Search = styled('div')(({ theme }) => ({
         position: 'relative',
@@ -47,31 +50,33 @@ const Home:FC = () => {
       const StyledInputBase = styled(InputBase)(({ theme }) => ({
         color: 'inherit',
         '& .MuiInputBase-input': {
-          padding: theme.spacing(1, 1, 1, 0),
-          paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-          transition: theme.transitions.create('width'),
+          padding: theme.spacing(1, 2, 1, 2),
           width: '100%',
-          [theme.breakpoints.up('sm')]: {
-            width: '12ch',
-            '&:focus': {
-              width: '20ch',
-            },
-          },
         },
       }));
 
-    const submitData = (e: MouseEvent<HTMLElement>) => {
-        e.preventDefault();
-        const data = { name, region, description, latitude, longitude, user: localStorage.getItem("user_id") };
+    const clearData = () => {
+        setName("");
+        setRegion("");
+        setDescription("");
+        setLatitude("");
+        setLongitude("");
+    };
 
+    const submitData = () => {
+        if(!name || !region || !description || !latitude || !longitude) return;
+        const data = { name, region, description, latitude, longitude, user: localStorage.getItem("user_id") };
+        setLoading(true);
         axios
             .post("http://localhost:5000/api/v1/sites/", data, { withCredentials: true })
             .then((res) => {
+                setLoading(false);
                 updateSeverity(1);
                 updateOpen(true);
                 updateMessage(res.data.message);
             })
             .catch((err) => {
+                setLoading(false);
                 updateSeverity(0);
                 updateOpen(true);
                 updateMessage("Something went wrong. Could not create site.");
@@ -88,6 +93,12 @@ const Home:FC = () => {
             .catch((err) => console.log(err));
     };
 
+    const searchSite = (e: KeyboardEvent) => {
+        if(e.key === "Enter") {
+            //console.log(e.target.value)
+        }
+    };
+
     return (
         <>
             <Box sx={{ flexGrow: 1 }}>
@@ -102,11 +113,8 @@ const Home:FC = () => {
                             Audit Log
                         </Typography>
                         <Search>
-                            <SearchIconWrapper>
-                                <SearchIcon />
-                            </SearchIconWrapper>
                             <StyledInputBase
-                                placeholder="Search…"
+                                placeholder="Enter site id to search..."
                                 inputProps={{ 'aria-label': 'search' }}
                             />
                         </Search>
@@ -117,14 +125,14 @@ const Home:FC = () => {
             <Container>
                 <Paper elevation={5} style={styles.formStyle}>
                     <form>
-                        <TextField style={styles.spaceBottom} label="Site Name" placeholder="Enter site name" required fullWidth onChange={(e) => setName(e.target.value)} />
-                        <TextField style={styles.spaceBottom} label="Region" placeholder="Enter region name" fullWidth required  onChange={(e) => setRegion(e.target.value)} />
-                        <TextField style={styles.spaceBottom} label="Description" placeholder="Enter description" required fullWidth onChange={(e) => setDescription(e.target.value)} />
-                        <TextField style={styles.spaceBottom} label="Latitude" placeholder="Enter latitude" fullWidth required  onChange={(e) => setLatitude(e.target.value)} />
-                        <TextField style={styles.spaceBottom} label="Longitude" placeholder="Enter longitude" required fullWidth onChange={(e) => setLongitude(e.target.value)} />
+                        <TextField style={styles.spaceBottom} value={name} label="Site Name" placeholder="Enter site name" required fullWidth onChange={(e) => setName(e.target.value)} />
+                        <TextField style={styles.spaceBottom} value={region} label="Region" placeholder="Enter region name" fullWidth required  onChange={(e) => setRegion(e.target.value)} />
+                        <TextField style={styles.spaceBottom} value={description} label="Description" placeholder="Enter description" required fullWidth onChange={(e) => setDescription(e.target.value)} />
+                        <TextField style={styles.spaceBottom} value={latitude} label="Latitude" placeholder="Enter latitude" fullWidth required  onChange={(e) => setLatitude(e.target.value)} />
+                        <TextField style={styles.spaceBottom} value={longitude} label="Longitude" placeholder="Enter longitude" required fullWidth onChange={(e) => setLongitude(e.target.value)} />
                         <Grid>
-                            <Button style={styles.spaced} startIcon={<CheckIcon />} type="submit" color="primary" variant="contained" onClick={submitData}>Save</Button>
-                            <Button style={styles.shifted} startIcon={<ClearIcon />} type="button" variant="outlined">Cancel</Button>
+                            <LoadingButton text="Save" click={submitData} loading={loading} width={false} styles={styles.spaced} start={<CheckIcon />} />
+                            <Button style={styles.shifted} startIcon={<ClearIcon />} type="button" variant="outlined" onClick={clearData}>Cancel</Button>
                         </Grid>              
                     </form>
                 </Paper>

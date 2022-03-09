@@ -1,26 +1,37 @@
-import React, { useState, MouseEvent, FC } from "react";
+import React, { useState, MouseEvent, FC, useContext, useRef } from "react";
 import { Avatar, Button, Container, Grid, Paper, TextField } from "@mui/material";
 import axios from "axios";
 import LockOpenIcon from '@mui/icons-material/LockOpen';
+import LogContext from "../utils/LogContext";
 import styles from "../styles/login";
+import LoadingButton from "../components/LoadingButton";
 
 const Login:FC = () => {
     const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
-
+    const [loading, setLoading] = useState(false);
+    const { updateMessage, updateOpen, updateSeverity } = useContext(LogContext);
+    
     const submitData = (e: MouseEvent<HTMLElement>) => {
-        e.preventDefault();
         if(userName === "" || password === "") return;
 
+        setLoading(true);
         const data = { userName, password };
         axios
             .post("http://localhost:5000/api/v1/users/login", data, { withCredentials: true })
             .then((res) => {
+                setLoading(false);
+                updateSeverity(1);
+                updateOpen(true);
+                updateMessage(res.data.message);
                 localStorage.setItem("user_id", res.data.user_id);
                 window.location.href = "/";
             })
             .catch((err) => {
-                console.log(err);
+                setLoading(false);
+                updateSeverity(0);
+                updateOpen(true);
+                updateMessage("Credentials did not match");
             });
     };
 
@@ -34,7 +45,7 @@ const Login:FC = () => {
                     </Grid>
                     <TextField style={styles.spaceBottom} label="Username" placeholder="Enter username" required fullWidth onChange={(e) => setUserName(e.target.value)} />
                     <TextField style={styles.spaceBottom} label="Password" placeholder="Enter password" type="password" fullWidth required  onChange={(e) => setPassword(e.target.value)} />
-                    <Button style={{...styles.spaced, ...styles.expanded}} type="submit" color="primary" variant="contained" fullWidth onClick={submitData}>Login</Button>
+                    <LoadingButton click={submitData} styles={{...styles.spaced, ...styles.expanded}} width={true} text="Login" loading={loading} />
                 </form>
             </Paper>
         </Container>

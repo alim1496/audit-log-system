@@ -21,7 +21,7 @@ const CustomSnackbar:FC = () => {
   };
 
   return (
-    <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+    <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
       <Alert onClose={handleClose} severity={severity === 1 ? "success" : "error"} sx={{ width: '100%' }}>
         {message}
       </Alert>
