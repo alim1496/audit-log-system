@@ -1,5 +1,5 @@
 import { Container, Grid, Paper, TextField, Button, AppBar, Toolbar, Box } from "@mui/material";
-import React, { FC, useState, MouseEvent, useContext } from "react";
+import React, { FC, useState, MouseEvent, useContext, ChangeEventHandler, ChangeEvent, KeyboardEvent } from "react";
 import { styled, alpha } from '@mui/material/styles';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -11,6 +11,7 @@ import styles from "../styles/home";
 import axios from "axios";
 import LogContext from "../utils/LogContext";
 import LoadingButton from "../components/LoadingButton";
+import { SiteData } from "../types/SiteData";
 
 const Home:FC = () => {
     const [name, setName] = useState("");
@@ -20,7 +21,7 @@ const Home:FC = () => {
     const [longitude, setLongitude] = useState("");
     const { updateOpen, updateMessage, updateSeverity } = useContext(LogContext);
     const [loading, setLoading] = useState(false);
-    const [search, setSearch] = useState("");
+    const [siteID, setSiteID] = useState("");
 
     const Search = styled('div')(({ theme }) => ({
         position: 'relative',
@@ -36,21 +37,11 @@ const Home:FC = () => {
           width: 'auto',
         },
       }));
-      
-      const SearchIconWrapper = styled('div')(({ theme }) => ({
-        padding: theme.spacing(0, 2),
-        height: '100%',
-        position: 'absolute',
-        pointerEvents: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }));
 
       const StyledInputBase = styled(InputBase)(({ theme }) => ({
         color: 'inherit',
         '& .MuiInputBase-input': {
-          padding: theme.spacing(1, 2, 1, 2),
+          padding: theme.spacing(1, 5, 1, 2),
           width: '100%',
         },
       }));
@@ -61,26 +52,44 @@ const Home:FC = () => {
         setDescription("");
         setLatitude("");
         setLongitude("");
+        setSiteID("");
     };
 
     const submitData = () => {
         if(!name || !region || !description || !latitude || !longitude) return;
         const data = { name, region, description, latitude, longitude, user: localStorage.getItem("user_id") };
         setLoading(true);
-        axios
-            .post("http://localhost:5000/api/v1/sites/", data, { withCredentials: true })
-            .then((res) => {
-                setLoading(false);
-                updateSeverity(1);
-                updateOpen(true);
-                updateMessage(res.data.message);
-            })
-            .catch((err) => {
-                setLoading(false);
-                updateSeverity(0);
-                updateOpen(true);
-                updateMessage("Something went wrong. Could not create site.");
-            });
+        if(siteID === "") {
+            axios
+                .post("http://localhost:5000/api/v1/sites/", data, { withCredentials: true })
+                .then((res) => {
+                    setLoading(false);
+                    updateSeverity(1);
+                    updateOpen(true);
+                    updateMessage(res.data.message);
+                })
+                .catch((err) => {
+                    setLoading(false);
+                    updateSeverity(0);
+                    updateOpen(true);
+                    updateMessage("Something went wrong. Could not create site.");
+                });
+        } else {
+            axios
+                .put(`http://localhost:5000/api/v1/sites/${siteID}`, data, { withCredentials: true })
+                .then((res) => {
+                    setLoading(false);
+                    updateSeverity(1);
+                    updateOpen(true);
+                    updateMessage(res.data.message);
+                })
+                .catch((err) => {
+                    setLoading(false);
+                    updateSeverity(0);
+                    updateOpen(true);
+                    updateMessage("Something went wrong. Could not create site.");
+                });
+        }
     };
 
     const logout = () => {
@@ -93,9 +102,28 @@ const Home:FC = () => {
             .catch((err) => console.log(err));
     };
 
-    const searchSite = (e: KeyboardEvent) => {
-        if(e.key === "Enter") {
-            //console.log(e.target.value)
+    const searchSite = () => {
+        const input:HTMLInputElement | null = document.querySelector("#main_search");
+        if(input) {
+            axios
+                .get(`http://localhost:5000/api/v1/sites/${input.value}`, { withCredentials: true })
+                .then(res => {
+                    updateSeverity(1);
+                    updateOpen(true);
+                    updateMessage("Site with that ID was found.");
+                    const { data } = res;
+                    setSiteID(data._id);
+                    setName(data.name);
+                    setRegion(data.region);
+                    setDescription(data.description);
+                    setLatitude(data.latitude);
+                    setLongitude(data.longitude);
+                })
+                .catch(err => {
+                    updateSeverity(0);
+                    updateOpen(true);
+                    updateMessage("Found no site with that ID.");
+                });
         }
     };
 
@@ -116,7 +144,9 @@ const Home:FC = () => {
                             <StyledInputBase
                                 placeholder="Enter site id to search..."
                                 inputProps={{ 'aria-label': 'search' }}
+                                id="main_search"
                             />
+                            <SearchIcon style={{ position: "absolute", right: 8, top: 6, cursor: "pointer" }} onClick={searchSite} />
                         </Search>
                         <Button type="button" startIcon={<ExitToAppIcon />} style={{ color: "#fff", marginLeft: "2rem" }} onClick={logout}>Logout</Button>
                     </Toolbar>
@@ -124,6 +154,7 @@ const Home:FC = () => {
             </Box>
             <Container>
                 <Paper elevation={5} style={styles.formStyle}>
+                    {siteID !== "" && <h4 style={{ marginBottom: 20 }}>Site ID: {siteID}</h4>}
                     <form>
                         <TextField style={styles.spaceBottom} value={name} label="Site Name" placeholder="Enter site name" required fullWidth onChange={(e) => setName(e.target.value)} />
                         <TextField style={styles.spaceBottom} value={region} label="Region" placeholder="Enter region name" fullWidth required  onChange={(e) => setRegion(e.target.value)} />
@@ -131,7 +162,14 @@ const Home:FC = () => {
                         <TextField style={styles.spaceBottom} value={latitude} label="Latitude" placeholder="Enter latitude" fullWidth required  onChange={(e) => setLatitude(e.target.value)} />
                         <TextField style={styles.spaceBottom} value={longitude} label="Longitude" placeholder="Enter longitude" required fullWidth onChange={(e) => setLongitude(e.target.value)} />
                         <Grid>
-                            <LoadingButton text="Save" click={submitData} loading={loading} width={false} styles={styles.spaced} start={<CheckIcon />} />
+                            <LoadingButton
+                                text={siteID !== "" ? "Update" : "Save"} 
+                                click={submitData} 
+                                loading={loading} 
+                                width={false} 
+                                styles={styles.spaced} 
+                                start={<CheckIcon />} 
+                            />
                             <Button style={styles.shifted} startIcon={<ClearIcon />} type="button" variant="outlined" onClick={clearData}>Cancel</Button>
                         </Grid>              
                     </form>

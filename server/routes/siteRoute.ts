@@ -36,7 +36,7 @@ SiteRouter.post("/", isAuth, (req: Request, res: Response) => {
         .catch(() => res.status(500).send({ message: "Could not create site." }));
 });
 
-SiteRouter.patch("/:id", isAuth, (req: Request, res: Response) => {
+SiteRouter.put("/:id", isAuth, (req: Request, res: Response) => {
     if (!Types.ObjectId.isValid(req.params.id)) {
         return res.status(400).send({ message: "Invalid Site ID"});
     };

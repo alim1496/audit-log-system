@@ -18,7 +18,6 @@ app.use(cors({
 
 const port = config.PORT;
 const mongodbURL = config.MONGODB_URL;
-
 mongoose.connect(mongodbURL).catch(error => console.log(`${error} connecting to DB`));
 
 app.get("/", (req: Request, res: Response) => res.send("Hello all"));
