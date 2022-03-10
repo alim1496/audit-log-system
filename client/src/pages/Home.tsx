@@ -1,10 +1,11 @@
-import { Container, Grid, Paper, TextField, Button, AppBar, Toolbar, Box } from "@mui/material";
+import { Container, Grid, Paper, TextField, Button, AppBar, Toolbar, Box, CircularProgress } from "@mui/material";
 import React, { FC, useState, MouseEvent, useContext, ChangeEventHandler, ChangeEvent, KeyboardEvent } from "react";
 import { styled, alpha } from '@mui/material/styles';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import SearchIcon from '@mui/icons-material/Search';
+//import LoadingIcon
 import Typography from '@mui/material/Typography';
 import InputBase from '@mui/material/InputBase';
 import styles from "../styles/home";
@@ -24,6 +25,7 @@ const Home:FC = () => {
     const [loading, setLoading] = useState(false);
     const [siteID, setSiteID] = useState("");
     const [logs, setLogs] = useState<LogData[]>([]);
+    const [searchLoading, setSearchLoading] = useState(false);
 
     const Search = styled('div')(({ theme }) => ({
         position: 'relative',
@@ -69,6 +71,7 @@ const Home:FC = () => {
                     updateSeverity(1);
                     updateOpen(true);
                     updateMessage(res.data.message);
+                    clearData();
                 })
                 .catch((err) => {
                     setLoading(false);
@@ -84,6 +87,7 @@ const Home:FC = () => {
                     updateSeverity(1);
                     updateOpen(true);
                     updateMessage(res.data.message);
+                    clearData();
                     fetchLogs(siteID);
                 })
                 .catch((err) => {
@@ -101,11 +105,6 @@ const Home:FC = () => {
             .then(res => {
                 const _res = res.data.result;
                 setLogs(_res);
-                // const _data:LogData[] = [];
-                // _res.forEach(element => {
-                //     _data.push({ user: element.user.fullName });
-                // });
-                
             })
             .catch(err => console.log(err));
     };
@@ -122,10 +121,12 @@ const Home:FC = () => {
 
     const searchSite = () => {
         const input:HTMLInputElement | null = document.querySelector("#main_search");
-        if(input) {
+        if(input?.value) {
+            setSearchLoading(true);
             axios
                 .get(`http://localhost:5000/api/v1/sites/${input.value}`, { withCredentials: true })
                 .then(res => {
+                    setSearchLoading(false);
                     updateSeverity(1);
                     updateOpen(true);
                     updateMessage("Site with that ID was found.");
@@ -139,6 +140,7 @@ const Home:FC = () => {
                     fetchLogs(input.value);
                 })
                 .catch(err => {
+                    setSearchLoading(false);
                     updateSeverity(0);
                     updateOpen(true);
                     updateMessage("Found no site with that ID.");
@@ -165,7 +167,27 @@ const Home:FC = () => {
                                 inputProps={{ 'aria-label': 'search' }}
                                 id="main_search"
                             />
-                            <SearchIcon style={{ position: "absolute", right: 8, top: 6, cursor: "pointer" }} onClick={searchSite} />
+                            {searchLoading 
+                                ? (<CircularProgress 
+                                    size={18} 
+                                    style={{ 
+                                        position: "absolute",
+                                        right: 8, 
+                                        top: 8,
+                                        color: "#fff"
+                                    }}
+                                    />)
+                                : (<SearchIcon 
+                                    style={{ 
+                                        position: "absolute",
+                                        right: 8, 
+                                        top: 6, 
+                                        cursor: "pointer" 
+                                    }}
+                                    onClick={searchSite} 
+                                />)
+                            }
+                            
                         </Search>
                         <Button type="button" startIcon={<ExitToAppIcon />} style={{ color: "#fff", marginLeft: "2rem" }} onClick={logout}>Logout</Button>
                     </Toolbar>
@@ -192,9 +214,20 @@ const Home:FC = () => {
                             <Button style={styles.shifted} startIcon={<ClearIcon />} type="button" variant="outlined" onClick={clearData}>Cancel</Button>
                         </Grid>              
                     </form>
-                    {logs.map((log: LogData) => (
-                        <h6>{log.update ? "Updated" : "Created"} by {log.user.fullName} on {log.createdAt}</h6>
-                    ))}
+                    {logs.length > 0 && (
+                        <>
+                            <hr style={{ margin: "10px 0" }}/>
+                            <h4 style={{ marginBottom: 6 }}>Audit Log</h4>
+                        </>
+                    )}
+                    {logs.map((log: LogData) => {
+                        const time = log.createdAt.split("T");
+                        return(
+                            <p style={{ fontSize: 14, marginBottom: 3 }}>
+                                {log.update ? "Updated" : "Created"} by {log.user.fullName} on {time[0]} {time[1].split(".")[0]}
+                            </p>
+                        )}
+                    )}
                 </Paper>
             </Container>
         </>
