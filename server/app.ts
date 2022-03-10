@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import config from "./config";
 import SiteRouter from "./routes/siteRoute";
 import UserRouter from "./routes/userRoute";
+import LogRouter from "./routes/logRoute";
 
 const app: Application = express();
 
@@ -24,5 +25,6 @@ app.get("/", (req: Request, res: Response) => res.send("Hello all"));
 
 app.use("/api/v1/users", UserRouter);
 app.use("/api/v1/sites", SiteRouter);
+app.use("/api/v1/logs", LogRouter);
 
 app.listen(port, () => console.log(`Server running on ${port}`));

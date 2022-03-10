@@ -12,6 +12,7 @@ import axios from "axios";
 import LogContext from "../utils/LogContext";
 import LoadingButton from "../components/LoadingButton";
 import { SiteData } from "../types/SiteData";
+import { LogData } from "../types/LogData";
 
 const Home:FC = () => {
     const [name, setName] = useState("");
@@ -22,6 +23,7 @@ const Home:FC = () => {
     const { updateOpen, updateMessage, updateSeverity } = useContext(LogContext);
     const [loading, setLoading] = useState(false);
     const [siteID, setSiteID] = useState("");
+    const [logs, setLogs] = useState<LogData[]>([]);
 
     const Search = styled('div')(({ theme }) => ({
         position: 'relative',
@@ -82,6 +84,7 @@ const Home:FC = () => {
                     updateSeverity(1);
                     updateOpen(true);
                     updateMessage(res.data.message);
+                    fetchLogs(siteID);
                 })
                 .catch((err) => {
                     setLoading(false);
@@ -90,6 +93,21 @@ const Home:FC = () => {
                     updateMessage("Something went wrong. Could not create site.");
                 });
         }
+    };
+
+    const fetchLogs = (_siteID: string) => {
+        axios
+            .get(`http://localhost:5000/api/v1/logs/${_siteID}`, { withCredentials: true })
+            .then(res => {
+                const _res = res.data.result;
+                setLogs(_res);
+                // const _data:LogData[] = [];
+                // _res.forEach(element => {
+                //     _data.push({ user: element.user.fullName });
+                // });
+                
+            })
+            .catch(err => console.log(err));
     };
 
     const logout = () => {
@@ -118,6 +136,7 @@ const Home:FC = () => {
                     setDescription(data.description);
                     setLatitude(data.latitude);
                     setLongitude(data.longitude);
+                    fetchLogs(input.value);
                 })
                 .catch(err => {
                     updateSeverity(0);
@@ -173,6 +192,9 @@ const Home:FC = () => {
                             <Button style={styles.shifted} startIcon={<ClearIcon />} type="button" variant="outlined" onClick={clearData}>Cancel</Button>
                         </Grid>              
                     </form>
+                    {logs.map((log: LogData) => (
+                        <h6>{log.update ? "Updated" : "Created"} by {log.user.fullName} on {log.createdAt}</h6>
+                    ))}
                 </Paper>
             </Container>
         </>

@@ -1,5 +1,6 @@
-import e, { Router, Request, Response } from "express";
+import { Router, Request, Response } from "express";
 import { Types } from "mongoose";
+import LogModel from "../models/logModel";
 import SiteModel, { Site } from "../models/siteModel";
 import { isAuth } from "../utils";
 
@@ -14,7 +15,7 @@ SiteRouter.get("/:id", isAuth, async (req: Request, res: Response) => {
         .findById(req.params.id)
         .populate("user", { fullName: 1 })
         .exec();
-    console.log(_site);
+
     if(_site) {
         res.status(201).send(_site);
     } else {
@@ -31,6 +32,7 @@ SiteRouter.post("/", isAuth, (req: Request, res: Response) => {
     site
         .save()
         .then((data) => {
+            new LogModel({ user: data.user._id, site: data._id, update: false }).save(); 
             res.status(201).send({ message: `Site created successfully with id ${data._id}`, data });
         })
         .catch(() => res.status(500).send({ message: "Could not create site." }));
@@ -44,6 +46,7 @@ SiteRouter.put("/:id", isAuth, (req: Request, res: Response) => {
     SiteModel
         .findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true })
         .then((data) => {
+            if(data) new LogModel({ user: data.user._id, site: data._id, update: true }).save();
             res.status(201).send({ message: "Site Updated Successfully.", data });
         })
         .catch(() => res.status(500).send({ message: "Could not create site." }));
